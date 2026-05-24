@@ -461,9 +461,17 @@ with col_result:
 
                     m1, m2 = st.columns(2)
                     with m1:
-                        st.metric("Predicción", labels[top_idx])
+                        st.markdown(f"""
+                        <div style="background:linear-gradient(135deg,#131929,#0F172A);border:1px solid rgba(99,102,241,0.25);border-radius:16px;padding:1.25rem 1.5rem;">
+                            <div style="color:#64748B;font-family:'Space Mono',monospace;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Predicción</div>
+                            <div style="color:#A5B4FC;font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;line-height:1.4;word-break:break-word;">{labels[top_idx]}</div>
+                        </div>""", unsafe_allow_html=True)
                     with m2:
-                        st.metric("Confianza", f"{confidence:.2%}")
+                        st.markdown(f"""
+                        <div style="background:linear-gradient(135deg,#131929,#0F172A);border:1px solid rgba(99,102,241,0.25);border-radius:16px;padding:1.25rem 1.5rem;">
+                            <div style="color:#64748B;font-family:'Space Mono',monospace;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Confianza</div>
+                            <div style="color:#C4B5FD;font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;">{confidence:.2%}</div>
+                        </div>""", unsafe_allow_html=True)
 
                     st.markdown('<div style="margin-top:1rem;"></div>', unsafe_allow_html=True)
 
