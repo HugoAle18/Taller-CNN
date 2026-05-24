@@ -55,21 +55,37 @@ st.markdown("""
     border-color: rgba(99,102,241,0.25) !important;
 }
 
-/* ── SEGMENTED CONTROL ────────────────────────────────── */
-[data-testid="stSegmentedControl"] {
-    background: #131929 !important;
-    border: 1px solid rgba(99,102,241,0.3) !important;
-    border-radius: 10px !important;
+/* ── RADIO BUTTONS (reemplaza segmented control) ──────── */
+[data-testid="stRadio"] > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.4rem !important;
 }
-[data-testid="stSegmentedControl"] label {
-    color: #94A3B8 !important;
+[data-testid="stRadio"] label {
+    background: #131929 !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+    border-radius: 10px !important;
+    padding: 0.5rem 1rem !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
     font-family: 'Space Mono', monospace !important;
     font-size: 0.75rem !important;
+    color: #94A3B8 !important;
 }
-[data-testid="stSegmentedControl"] [aria-selected="true"] {
-    background: linear-gradient(135deg, #6366F1, #8B5CF6) !important;
+[data-testid="stRadio"] label:hover {
+    border-color: rgba(99,102,241,0.6) !important;
+    color: #E2E8F0 !important;
+}
+[data-testid="stRadio"] [aria-checked="true"] + div,
+[data-testid="stRadio"] input:checked ~ div {
     color: #FFFFFF !important;
-    border-radius: 7px !important;
+}
+[data-testid="stRadio"] [data-baseweb="radio"] [aria-checked="true"] ~ span {
+    color: #FFFFFF !important;
+}
+/* Ocultar el círculo nativo del radio */
+[data-testid="stRadio"] [data-baseweb="radio"] > div:first-child {
+    display: none !important;
 }
 
 /* ── INFO BOX EN SIDEBAR ──────────────────────────────── */
@@ -354,10 +370,10 @@ with st.sidebar:
 
     st.markdown('<p style="color:#64748B!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem;">CEREBRO ACTIVO</p>', unsafe_allow_html=True)
 
-    engine_choice = st.segmented_control(
+    engine_choice = st.radio(
         "Cerebro Activo:",
         options=["Números (MNIST)", "Moda (Fashion)"],
-        default="Números (MNIST)",
+        index=0,
         label_visibility="collapsed"
     )
 
