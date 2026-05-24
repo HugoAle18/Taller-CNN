@@ -16,6 +16,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Ocultar toolbar superior de Streamlit
+st.markdown("""
+<style>
+header[data-testid="stHeader"] { display: none !important; }
+#MainMenu { display: none !important; }
+footer { display: none !important; }
+</style>
+""", unsafe_allow_html=True)
+
 # ============================================================
 # 2. CSS PROFESIONAL — DARK THEME CON CONTRASTE TOTAL
 # ============================================================
@@ -55,37 +64,63 @@ st.markdown("""
     border-color: rgba(99,102,241,0.25) !important;
 }
 
-/* ── RADIO BUTTONS (reemplaza segmented control) ──────── */
+/* ── OCULTAR TOOLTIP NATIVO STREAMLIT ─────────────────── */
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"],
+button[title],
+[title="keyboard_double_arrow_right"],
+div[class*="toolbar"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+/* Eliminar cualquier tooltip flotante */
+div[data-baseweb="tooltip"],
+div[role="tooltip"] {
+    display: none !important;
+}
+
+/* ── RADIO BUTTONS ────────────────────────────────────── */
 [data-testid="stRadio"] > div {
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.4rem !important;
+    gap: 0.5rem !important;
 }
-[data-testid="stRadio"] label {
-    background: #131929 !important;
-    border: 1px solid rgba(99,102,241,0.25) !important;
-    border-radius: 10px !important;
-    padding: 0.5rem 1rem !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    font-family: 'Space Mono', monospace !important;
-    font-size: 0.75rem !important;
-    color: #94A3B8 !important;
-}
-[data-testid="stRadio"] label:hover {
-    border-color: rgba(99,102,241,0.6) !important;
-    color: #E2E8F0 !important;
-}
-[data-testid="stRadio"] [aria-checked="true"] + div,
-[data-testid="stRadio"] input:checked ~ div {
-    color: #FFFFFF !important;
-}
-[data-testid="stRadio"] [data-baseweb="radio"] [aria-checked="true"] ~ span {
-    color: #FFFFFF !important;
-}
-/* Ocultar el círculo nativo del radio */
+/* Ocultar el círculo nativo */
 [data-testid="stRadio"] [data-baseweb="radio"] > div:first-child {
     display: none !important;
+}
+/* Todas las opciones — estado normal */
+[data-testid="stRadio"] label {
+    background: #0D1120 !important;
+    border: 1px solid rgba(99,102,241,0.2) !important;
+    border-radius: 10px !important;
+    padding: 0.6rem 1rem !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 0.75rem !important;
+    color: #475569 !important;
+    width: 100% !important;
+}
+[data-testid="stRadio"] label:hover {
+    border-color: rgba(99,102,241,0.5) !important;
+    color: #94A3B8 !important;
+    background: #131929 !important;
+}
+/* Opción seleccionada */
+[data-testid="stRadio"] label:has(input:checked) {
+    background: linear-gradient(135deg, #4F46E5, #7C3AED) !important;
+    border-color: transparent !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.45) !important;
+    font-weight: 700 !important;
+}
+/* Texto dentro de la opción seleccionada */
+[data-testid="stRadio"] label:has(input:checked) p,
+[data-testid="stRadio"] label:has(input:checked) span {
+    color: #FFFFFF !important;
 }
 
 /* ── INFO BOX EN SIDEBAR ──────────────────────────────── */
