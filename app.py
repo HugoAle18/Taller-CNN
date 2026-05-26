@@ -68,8 +68,6 @@ st.markdown("""
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
-button[title],
-[title="keyboard_double_arrow_right"],
 div[class*="toolbar"] {
     display: none !important;
     visibility: hidden !important;
