@@ -4,7 +4,6 @@ import numpy as np
 from PIL import Image, ImageOps
 import pandas as pd
 import plotly.graph_objects as go
-import io
 from streamlit_drawable_canvas import st_canvas
 
 # ============================================================
@@ -158,8 +157,16 @@ hr { border-color:rgba(99,102,241,0.15) !important; margin:2rem 0 !important; }
 [data-testid="stTabs"] [data-baseweb="tab-highlight"],
 [data-testid="stTabs"] [data-baseweb="tab-border"] { display:none !important; }
 
-/* Canvas drawable styling */
-canvas { border-radius: 12px !important; }
+/* Forzar fondo negro en el canvas drawable */
+.canvas-container { border-radius: 12px !important; overflow: hidden !important; }
+.canvas-container canvas {
+    border-radius: 12px !important;
+    border: 1.5px solid rgba(99,102,241,0.5) !important;
+    cursor: crosshair !important;
+}
+/* Ocultar toolbar del canvas */
+[data-testid="stCanvasToolbar"],
+div[class*="canvasToolbar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -238,21 +245,27 @@ def show_results(preds, labels):
         hovertemplate='<b>%{y}</b><br>Confianza: %{x:.2%}<extra></extra>',
     ))
     fig.update_layout(
-        title=dict(text='Distribución de Probabilidades', font=dict(color='#E2E8F0', size=13, family='Syne'), x=0),
+        title=dict(text='Distribución de Probabilidades',
+                   font=dict(color='#E2E8F0', size=13, family='Syne'), x=0),
         paper_bgcolor='rgba(13,17,32,0)', plot_bgcolor='rgba(13,17,32,0)',
         height=400, margin=dict(l=0, r=60, t=45, b=0),
         xaxis=dict(showgrid=True, gridcolor='rgba(99,102,241,0.08)', tickformat='.0%',
                    tickfont=dict(color='#475569', size=9, family='Space Mono'), zeroline=False),
-        yaxis=dict(tickfont=dict(color='#94A3B8', size=10, family='Syne'), gridcolor='rgba(99,102,241,0.05)'),
-        hoverlabel=dict(bgcolor='#0D1120', bordercolor='rgba(99,102,241,0.4)', font=dict(color='#E2E8F0', family='Syne')),
+        yaxis=dict(tickfont=dict(color='#94A3B8', size=10, family='Syne'),
+                   gridcolor='rgba(99,102,241,0.05)'),
+        hoverlabel=dict(bgcolor='#0D1120', bordercolor='rgba(99,102,241,0.4)',
+                        font=dict(color='#E2E8F0', family='Syne')),
     )
     st.plotly_chart(fig, use_container_width=True)
 
 # ============================================================
 # 5. SESSION STATE
 # ============================================================
-if "active_image" not in st.session_state:
-    st.session_state.active_image = None
+if "active_image"   not in st.session_state: st.session_state.active_image   = None
+if "show_results"   not in st.session_state: st.session_state.show_results   = False
+if "last_preds"     not in st.session_state: st.session_state.last_preds     = None
+if "last_labels"    not in st.session_state: st.session_state.last_labels    = None
+if "canvas_key"     not in st.session_state: st.session_state.canvas_key     = 0
 
 # ============================================================
 # 6. SIDEBAR
@@ -269,7 +282,11 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     st.markdown('<div style="border-top:1px solid rgba(99,102,241,0.2);margin-bottom:1.5rem;"></div>', unsafe_allow_html=True)
     st.markdown('<p style="color:#64748B!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem;">CEREBRO ACTIVO</p>', unsafe_allow_html=True)
-    engine_choice = st.radio("Cerebro Activo:", options=["Números (MNIST)", "Moda (Fashion)"], index=0, label_visibility="collapsed")
+    engine_choice = st.radio(
+        "Cerebro Activo:",
+        options=["Números (MNIST)", "Moda (Fashion)"],
+        index=0, label_visibility="collapsed"
+    )
     st.markdown('<div style="margin-top:1.5rem;"></div>', unsafe_allow_html=True)
     st.markdown('<div class="status-badge"><div class="status-dot"></div>SISTEMA ONLINE</div>', unsafe_allow_html=True)
     st.markdown('<div style="margin-top:1.5rem;"></div>', unsafe_allow_html=True)
@@ -283,7 +300,11 @@ with st.sidebar:
 header_col, _ = st.columns([3, 1])
 with header_col:
     st.title("🔮 Laboratorio de Clasificación Inteligente")
-    st.markdown(f'<p style="color:#64748B;font-family:\'Space Mono\',monospace;font-size:0.8rem;margin-top:-0.5rem;">Motor activo → <span style="color:#A5B4FC;font-weight:700;">{engine_choice}</span></p>', unsafe_allow_html=True)
+    st.markdown(
+        f'<p style="color:#64748B;font-family:\'Space Mono\',monospace;font-size:0.8rem;margin-top:-0.5rem;">'
+        f'Motor activo → <span style="color:#A5B4FC;font-weight:700;">{engine_choice}</span></p>',
+        unsafe_allow_html=True
+    )
 st.markdown('<div style="border-top:1px solid rgba(99,102,241,0.1);margin:1rem 0 2rem;"></div>', unsafe_allow_html=True)
 
 # ============================================================
@@ -303,6 +324,7 @@ with col_input:
     if engine_choice == "Números (MNIST)":
         tab_upload, tab_draw = st.tabs(["📁 Subir imagen", "✏️ Dibujar número"])
 
+        # ---------- TAB SUBIR ----------
         with tab_upload:
             uploaded_file = st.file_uploader(
                 "Sube tu imagen", type=["png","jpg","jpeg"],
@@ -311,66 +333,90 @@ with col_input:
             if uploaded_file:
                 img = Image.open(uploaded_file).convert("RGB")
                 st.session_state.active_image = img
+                st.session_state.show_results = False
                 st.image(img, caption=f"📁 {uploaded_file.name}", use_container_width=True)
             else:
-                st.markdown("""
-                <div style="background:linear-gradient(135deg,rgba(99,102,241,0.05),rgba(139,92,246,0.05));
-                    border:1.5px dashed rgba(99,102,241,0.25);border-radius:16px;
-                    padding:3rem 2rem;text-align:center;margin-top:0.5rem;">
-                    <div style="font-size:2.5rem;margin-bottom:0.75rem;">🖼️</div>
-                    <p style="color:#475569!important;font-family:'Space Mono',monospace;font-size:0.78rem;line-height:1.6;">
-                        Arrastra una imagen PNG, JPG o JPEG<br>
-                        <span style="color:#334155!important;font-size:0.7rem;">Máx. 200MB</span>
-                    </p>
-                </div>""", unsafe_allow_html=True)
+                if st.session_state.active_image is None:
+                    st.markdown("""
+                    <div style="background:linear-gradient(135deg,rgba(99,102,241,0.05),rgba(139,92,246,0.05));
+                        border:1.5px dashed rgba(99,102,241,0.25);border-radius:16px;
+                        padding:3rem 2rem;text-align:center;margin-top:0.5rem;">
+                        <div style="font-size:2.5rem;margin-bottom:0.75rem;">🖼️</div>
+                        <p style="color:#475569!important;font-family:'Space Mono',monospace;font-size:0.78rem;line-height:1.6;">
+                            Arrastra una imagen PNG, JPG o JPEG<br>
+                            <span style="color:#334155!important;font-size:0.7rem;">Máx. 200MB</span>
+                        </p>
+                    </div>""", unsafe_allow_html=True)
 
+        # ---------- TAB DIBUJAR ----------
         with tab_draw:
+            # Instrucción
             st.markdown("""
             <p style="color:#64748B!important;font-family:'Space Mono',monospace;
-               font-size:0.72rem;margin-bottom:0.5rem;line-height:1.6;">
-               Dibuja un dígito del 0 al 9 — el análisis se lanza automáticamente al pulsar Analizar.
+               font-size:0.72rem;margin-bottom:0.75rem;">
+               ✏️ Dibuja un dígito del 0 al 9 — trazo blanco sobre fondo negro.
             </p>""", unsafe_allow_html=True)
 
-            # ── streamlit-drawable-canvas ──────────────────
+            # ── CANVAS — clave: update_streamlit=True hace que cada trazo
+            #    actualice Python en tiempo real sin botón extra ──────────
             canvas_result = st_canvas(
-                fill_color   = "rgba(0,0,0,0)",
-                stroke_width = 20,
-                stroke_color = "#FFFFFF",
-                background_color = "#000000",
-                width  = 400,
-                height = 400,
-                drawing_mode = "freedraw",
-                key = "digit_canvas",
-                display_toolbar = False,
+                fill_color        = "rgba(0,0,0,0)",   # relleno transparente
+                stroke_width      = 18,
+                stroke_color      = "#FFFFFF",
+                background_color  = "#000000",         # fondo negro explícito
+                background_image  = None,
+                update_streamlit  = True,              # actualiza en cada trazo
+                height            = 350,
+                width             = 350,
+                drawing_mode      = "freedraw",
+                key               = f"digit_canvas_{st.session_state.canvas_key}",
+                display_toolbar   = False,             # oculta toolbar nativa
             )
 
-            col_btn1, col_btn2 = st.columns(2)
-            with col_btn1:
-                if st.button("🗑 Limpiar canvas", key="btn_clear"):
-                    # Rerun limpia el canvas (key se resetea)
-                    st.session_state.active_image = None
+            st.markdown('<div style="margin-top:0.5rem;"></div>', unsafe_allow_html=True)
+
+            col_b1, col_b2 = st.columns(2)
+
+            with col_b1:
+                if st.button("🗑 Limpiar", key="btn_clear_canvas"):
+                    # Incrementar la key fuerza un canvas nuevo (vacío)
+                    st.session_state.canvas_key   += 1
+                    st.session_state.active_image  = None
+                    st.session_state.show_results  = False
+                    st.session_state.last_preds    = None
+                    st.session_state.last_labels   = None
                     st.rerun()
-            with col_btn2:
-                if st.button("▶ Analizar dibujo", key="btn_analyze_draw"):
-                    if canvas_result.image_data is not None:
-                        # image_data es RGBA numpy array
+
+            with col_b2:
+                # El botón solo aparece si hay algo dibujado
+                hay_trazo = (
+                    canvas_result is not None
+                    and canvas_result.image_data is not None
+                    and canvas_result.image_data.max() > 10
+                )
+                if hay_trazo:
+                    if st.button("▶ Analizar dibujo", key="btn_analyze_draw"):
                         arr = canvas_result.image_data.astype(np.uint8)
                         pil = Image.fromarray(arr, mode="RGBA").convert("RGB")
                         st.session_state.active_image = pil
+                        # Inferencia inmediata
+                        if model_mnist and model_fashion:
+                            preds, labels = run_inference(pil, engine_choice)
+                            st.session_state.last_preds  = preds
+                            st.session_state.last_labels = labels
+                            st.session_state.show_results = True
                         st.rerun()
-                    else:
-                        st.warning("Dibuja algo primero.")
 
-            if st.session_state.active_image is not None and canvas_result is not None:
-                if canvas_result.image_data is not None:
-                    st.markdown("""
-                    <div style="display:inline-flex;align-items:center;gap:6px;
-                        background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);
-                        padding:4px 12px;border-radius:999px;margin-top:6px;">
-                        <div style="width:6px;height:6px;background:#10B981;border-radius:50%;"></div>
-                        <span style="color:#6EE7B7!important;font-family:'Space Mono',monospace;
-                              font-size:0.68rem;font-weight:700;">DIBUJO LISTO</span>
-                    </div>""", unsafe_allow_html=True)
+            # Badge estado
+            if hay_trazo if 'hay_trazo' in dir() else False:
+                st.markdown("""
+                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;
+                    background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);
+                    padding:4px 12px;border-radius:999px;">
+                    <div style="width:6px;height:6px;background:#10B981;border-radius:50%;"></div>
+                    <span style="color:#6EE7B7!important;font-family:'Space Mono',monospace;
+                          font-size:0.68rem;font-weight:700;">LISTO PARA ANALIZAR</span>
+                </div>""", unsafe_allow_html=True)
 
     # ── FASHION ─────────────────────────────────────────────
     else:
@@ -381,6 +427,7 @@ with col_input:
         if uploaded_file:
             img = Image.open(uploaded_file).convert("RGB")
             st.session_state.active_image = img
+            st.session_state.show_results = False
             st.image(img, caption=f"📁 {uploaded_file.name}", use_container_width=True)
         else:
             st.session_state.active_image = None
@@ -406,16 +453,22 @@ with col_result:
     </div>
     """, unsafe_allow_html=True)
 
-    active = st.session_state.active_image
+    # Mostrar resultados guardados del canvas (persisten tras rerun)
+    if st.session_state.show_results and st.session_state.last_preds is not None:
+        show_results(st.session_state.last_preds, st.session_state.last_labels)
 
-    if active is not None:
+    elif st.session_state.active_image is not None:
         if st.button("▶  Analizar Patrones", key="btn_main_analyze"):
             if model_mnist and model_fashion:
                 with st.spinner("Procesando imagen..."):
-                    preds, labels = run_inference(active, engine_choice)
+                    preds, labels = run_inference(st.session_state.active_image, engine_choice)
+                    st.session_state.last_preds  = preds
+                    st.session_state.last_labels = labels
+                    st.session_state.show_results = True
                 show_results(preds, labels)
             else:
-                st.error("⚠️ No se detectaron los modelos en el repositorio.")
+                st.error("⚠️ No se detectaron los modelos.")
+
     else:
         st.markdown("""
         <div style="background:rgba(13,17,32,0.6);border:1px solid rgba(99,102,241,0.15);
