@@ -81,46 +81,44 @@ div[role="tooltip"] {
     display: none !important;
 }
 
-/* ── RADIO BUTTONS ────────────────────────────────────── */
-[data-testid="stRadio"] > div {
+/* ── RADIO BUTTONS CORREGIDOS ─────────────────────────── */
+[data-testid="stRadio"] > div[role="radiogroup"] {
     display: flex !important;
     flex-direction: column !important;
-    gap: 0.5rem !important;
+    gap: 0.6rem !important;
 }
-/* Ocultar el círculo nativo */
-[data-testid="stRadio"] [data-baseweb="radio"] > div:first-child {
-    display: none !important;
-}
-/* Todas las opciones — estado normal */
-[data-testid="stRadio"] label {
+
+[data-testid="stRadio"] label[data-baseweb="radio"] {
     background: #0D1120 !important;
     border: 1px solid rgba(99,102,241,0.2) !important;
     border-radius: 10px !important;
     padding: 0.6rem 1rem !important;
     cursor: pointer !important;
     transition: all 0.25s ease !important;
-    font-family: 'Space Mono', monospace !important;
-    font-size: 0.75rem !important;
-    color: #475569 !important;
-    width: 100% !important;
 }
-[data-testid="stRadio"] label:hover {
-    border-color: rgba(99,102,241,0.5) !important;
-    color: #94A3B8 !important;
+
+[data-testid="stRadio"] label[data-baseweb="radio"]:hover {
+    border-color: rgba(99,102,241,0.6) !important;
     background: #131929 !important;
 }
-/* Opción seleccionada */
-[data-testid="stRadio"] label:has(input:checked) {
-    background: linear-gradient(135deg, #4F46E5, #7C3AED) !important;
-    border-color: transparent !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 4px 20px rgba(99,102,241,0.45) !important;
-    font-weight: 700 !important;
+
+[data-testid="stRadio"] label[data-baseweb="radio"] div,
+[data-testid="stRadio"] label[data-baseweb="radio"] p {
+    color: #E2E8F0 !important;
+    font-family: 'Space Mono', monospace !important;
+    font-size: 0.8rem !important;
 }
-/* Texto dentro de la opción seleccionada */
-[data-testid="stRadio"] label:has(input:checked) p,
-[data-testid="stRadio"] label:has(input:checked) span {
+
+/* Resaltar la opción cuando está seleccionada */
+[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
+    background: linear-gradient(135deg, rgba(79,70,229,0.2), rgba(124,58,237,0.2)) !important;
+    border-color: #6366F1 !important;
+    box-shadow: 0 0 15px rgba(99,102,241,0.15) !important;
+}
+
+[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {
     color: #FFFFFF !important;
+    font-weight: 700 !important;
 }
 
 /* ── INFO BOX EN SIDEBAR ──────────────────────────────── */
