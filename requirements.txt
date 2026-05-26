@@ -4,3 +4,4 @@ numpy
 tensorflow-cpu
 Pillow
 plotly
+streamlit-drawable-canvas
