@@ -3,7 +3,6 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image, ImageOps
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_drawable_canvas import st_canvas
 
@@ -17,127 +16,54 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Ocultar elementos de Streamlit pero MANTENER el header
+# Ocultar elementos innecesarios pero MANTENER el botón de sidebar
 st.markdown("""
 <style>
 #MainMenu { display: none !important; }
 footer { display: none !important; }
-.stApp header > div.st-emotion-cache-11rsoem { display: none !important; }
+.stApp header > div:last-child { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 2. CSS PROFESIONAL — DARK THEME CON CONTRASTE TOTAL
+# 2. CSS PROFESIONAL — DARK THEME
 # ============================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
 
-*, *::before, *::after { box-sizing: border-box; }
+.stApp { background: #080B14 !important; font-family: 'Syne', sans-serif !important; }
 
-.stApp {
-    background: #080B14 !important;
-    font-family: 'Syne', sans-serif !important;
-}
+/* SIDEBAR */
+[data-testid="stSidebar"] { background: #0D1120 !important; border-right: 1px solid rgba(99,102,241,0.2) !important; }
 
-/* ── SIDEBAR ──────────────────────────────────────────── */
-[data-testid="stSidebar"] {
-    background: #0D1120 !important;
-    border-right: 1px solid rgba(99,102,241,0.2) !important;
-}
-[data-testid="stSidebar"] * { color: #E2E8F0 !important; }
-[data-testid="stSidebar"] .stMarkdown p { color: #94A3B8 !important; font-size: 0.85rem !important; }
-[data-testid="stSidebar"] h1 {
-    color: #F8FAFC !important; font-family: 'Syne', sans-serif !important;
-    font-weight: 800 !important; font-size: 1.4rem !important; letter-spacing: -0.02em !important;
-}
-[data-testid="stSidebar"] hr { border-color: rgba(99,102,241,0.25) !important; }
-
-/* ── RADIO BUTTONS ────────────────────────────────────── */
-[data-testid="stRadio"] > div[role="radiogroup"] { display: flex !important; flex-direction: column !important; gap: 0.6rem !important; }
+/* RADIO BUTTONS */
+[data-testid="stRadio"] > div[role="radiogroup"] { gap: 0.6rem !important; }
 [data-testid="stRadio"] label[data-baseweb="radio"] {
     background: #0D1120 !important; border: 1px solid rgba(99,102,241,0.2) !important;
-    border-radius: 10px !important; padding: 0.6rem 1rem !important; cursor: pointer !important;
-    transition: all 0.25s ease !important;
+    border-radius: 10px !important; padding: 0.6rem 1rem !important;
 }
-[data-testid="stRadio"] label[data-baseweb="radio"]:hover { border-color: rgba(99,102,241,0.6) !important; background: #131929 !important; }
 [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
-    background: linear-gradient(135deg, rgba(79,70,229,0.2), rgba(124,58,237,0.2)) !important;
-    border-color: #6366F1 !important; box-shadow: 0 0 15px rgba(99,102,241,0.15) !important;
-}
-[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p { color: #FFFFFF !important; font-weight: 700 !important; }
-
-/* ── TABS (Pestañas) ──────────────────────────────────── */
-[data-testid="stTabs"] button {
-    color: #94A3B8 !important; font-family: 'Space Mono', monospace !important; font-size: 0.8rem !important;
-}
-[data-testid="stTabs"] button[aria-selected="true"] {
-    color: #F8FAFC !important; border-bottom-color: #8B5CF6 !important; font-weight: 700 !important;
+    border-color: #6366F1 !important; background: rgba(99,102,241,0.1) !important;
 }
 
-/* ── ALERTAS E INFO ───────────────────────────────────── */
-[data-testid="stSidebar"] [data-testid="stAlert"] {
-    background: rgba(99,102,241,0.1) !important; border: 1px solid rgba(99,102,241,0.3) !important;
-    border-radius: 12px !important; color: #C7D2FE !important;
-}
-[data-testid="stSidebar"] [data-testid="stAlert"] p { font-size: 0.8rem !important; }
-
-/* ── TÍTULOS Y TEXTOS ─────────────────────────────────── */
-h1 {
-    font-family: 'Syne', sans-serif !important; font-weight: 800 !important; font-size: 2.2rem !important;
-    background: linear-gradient(135deg, #F8FAFC 0%, #A5B4FC 100%) !important;
-    -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important;
-}
-h2, h3 { color: #E2E8F0 !important; font-family: 'Syne', sans-serif !important; font-weight: 700 !important; }
-p, span, label, div { color: #CBD5E1 !important; font-family: 'Syne', sans-serif !important; }
-[data-testid="stText"], .stMarkdown p { color: #94A3B8 !important; }
-
-/* ── FILE UPLOADER ────────────────────────────────────── */
-[data-testid="stFileUploader"] {
-    background: #0D1120 !important; border: 1.5px dashed rgba(99,102,241,0.4) !important;
-    border-radius: 16px !important; padding: 1.5rem !important; transition: border-color 0.3s ease !important;
-}
-[data-testid="stFileUploader"]:hover { border-color: rgba(99,102,241,0.8) !important; }
-
-/* ── BOTÓN PRINCIPAL ──────────────────────────────────── */
+/* BOTÓN */
 div.stButton > button {
-    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%) !important; color: #FFFFFF !important;
-    border: none !important; padding: 0.75rem 2.5rem !important; border-radius: 12px !important;
-    font-family: 'Space Mono', monospace !important; font-weight: 700 !important; font-size: 0.85rem !important;
-    letter-spacing: 0.05em !important; text-transform: uppercase !important; transition: all 0.3s ease !important;
-    width: 100% !important; margin-top: 0.5rem !important;
+    background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%) !important; color: white !important;
+    border: none !important; padding: 0.75rem 2rem !important; border-radius: 12px !important;
+    font-family: 'Space Mono', monospace !important; font-weight: 700 !important; width: 100% !important;
 }
-div.stButton > button:hover { transform: translateY(-2px) !important; box-shadow: 0 8px 32px rgba(99,102,241,0.55) !important; }
 
-/* ── IMAGEN Y PLOTLY ──────────────────────────────────── */
-[data-testid="stImage"] { border-radius: 16px !important; border: 1px solid rgba(99,102,241,0.2) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
-[data-testid="stPlotlyChart"] { background: #0D1120 !important; border: 1px solid rgba(99,102,241,0.2) !important; border-radius: 20px !important; padding: 1rem !important; }
-
-/* ── UTILIDADES ───────────────────────────────────────── */
-hr { border-color: rgba(99,102,241,0.15) !important; margin: 2rem 0 !important; }
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #080B14; }
-::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 3px; }
-[data-testid="stHorizontalBlock"] { gap: 2rem !important; align-items: flex-start !important; }
-
-.status-badge {
-    display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.12);
-    border: 1px solid rgba(16,185,129,0.3); color: #6EE7B7 !important; padding: 4px 12px;
-    border-radius: 999px; font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700;
-}
-.status-dot { width: 6px; height: 6px; background: #10B981; border-radius: 50%; animation: pulse-dot 2s infinite; }
-@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-.sidebar-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
-.logo-mark {
-    width: 40px; height: 40px; background: linear-gradient(135deg, #6366F1, #8B5CF6);
-    border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+/* PANEL DE RESULTADOS */
+.result-card {
+    background: linear-gradient(135deg, #131929, #0F172A);
+    border: 1px solid rgba(99,102,241,0.25); border-radius: 16px; padding: 1.25rem;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 3. LÓGICA DE CARGA DE MODELOS
+# 3. CARGA DE MODELOS
 # ============================================================
 @st.cache_resource
 def load_vision_engines():
@@ -146,7 +72,7 @@ def load_vision_engines():
         m2 = tf.keras.models.load_model("fashion_mnist_cnn_model.keras")
         return m1, m2
     except Exception as e:
-        st.sidebar.error(f"⚠️ Error cargando modelos: {e}")
+        st.sidebar.error(f"⚠️ Error: {e}")
         return None, None
 
 model_mnist, model_fashion = load_vision_engines()
@@ -155,220 +81,111 @@ model_mnist, model_fashion = load_vision_engines()
 # 4. SIDEBAR
 # ============================================================
 with st.sidebar:
-    st.markdown("""
-    <div class="sidebar-logo">
-        <div class="logo-mark">🔮</div>
-        <div>
-            <div style="color:#F8FAFC;font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;line-height:1.2;">Vision Lab</div>
-            <div style="color:#6366F1;font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;">PRO v2.0</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div style="border-top:1px solid rgba(99,102,241,0.2);margin-bottom:1.5rem;"></div>', unsafe_allow_html=True)
-    st.markdown('<p style="color:#64748B!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem;">CEREBRO ACTIVO</p>', unsafe_allow_html=True)
-
+    st.markdown("### 🔮 Vision Lab Pro")
+    st.markdown("---")
+    st.write("MOTOR IA:")
     engine_choice = st.radio(
-        "Cerebro Activo:",
+        "Seleccionar Modelo:",
         options=["Números (MNIST)", "Moda (Fashion)"],
-        index=0,
-        label_visibility="collapsed"
+        index=0
     )
-
-    st.markdown('<div style="margin-top:1.5rem;"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="status-badge"><div class="status-dot"></div>SISTEMA ONLINE</div>', unsafe_allow_html=True)
-    st.markdown('<div style="margin-top:1.5rem;"></div>', unsafe_allow_html=True)
-    st.info("💡 **Tip:** El sistema invierte automáticamente los colores si detecta un fondo blanco para máxima precisión.")
-
-# ============================================================
-# 5. ENCABEZADO PRINCIPAL
-# ============================================================
-header_col, badge_col = st.columns([3, 1])
-with header_col:
-    st.title("🔮 Laboratorio de Clasificación Inteligente")
-    st.markdown(f'<p style="color:#64748B;font-family:\'Space Mono\',monospace;font-size:0.8rem;margin-top:-0.5rem;">Motor activo → <span style="color:#A5B4FC;font-weight:700;">{engine_choice}</span></p>', unsafe_allow_html=True)
-
-st.markdown('<div style="border-top:1px solid rgba(99,102,241,0.1);margin:1rem 0 2rem;"></div>', unsafe_allow_html=True)
+    
+    st.write("MÉTODO DE ENTRADA:")
+    input_mode = st.radio(
+        "Fuente de imagen:",
+        options=["Subir Archivo", "Pizarra (Solo MNIST)"] if engine_choice == "Números (MNIST)" else ["Subir Archivo"]
+    )
+    st.info("💡 La Pizarra es ideal para probar trazos manuales rápidos.")
 
 # ============================================================
-# 6. CUERPO PRINCIPAL
+# 5. CUERPO PRINCIPAL
 # ============================================================
-col_input, col_result = st.columns([1, 1.3], gap="large")
+st.title("🔮 Laboratorio de Clasificación Inteligente")
+st.markdown(f"Motor activo: **{engine_choice}**")
+st.markdown("---")
 
-# Variables para rastrear el input
-input_source = None
-img_raw = None
-canvas_result = None
+col_input, col_result = st.columns([1, 1.2], gap="large")
+
+img_tensor = None
 
 with col_input:
-    st.markdown("""
-    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.25rem;">
-        <span style="width:32px;height:32px;background:linear-gradient(135deg,#6366F1,#8B5CF6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">📸</span>
-        <h3 style="margin:0!important;font-size:1rem!important;color:#E2E8F0!important;font-weight:700!important;">Captura de Datos</h3>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if engine_choice == "Números (MNIST)":
-        # Tabs si es MNIST (Subida vs Pizarra)
-        tab_upload, tab_draw = st.tabs(["🖼️ Subir Imagen", "✍️ Pizarra en Vivo"])
-        
-        with tab_upload:
-            uploaded_file = st.file_uploader("Sube un número", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
-            if uploaded_file:
-                img_raw = Image.open(uploaded_file)
-                st.image(img_raw, caption=f"📁 {uploaded_file.name}", use_container_width=True)
-                input_source = "upload"
-                
-        with tab_draw:
-            st.markdown("<p style='font-size:0.85rem; margin-bottom:10px;'>Dibuja un número en el centro del cuadro:</p>", unsafe_allow_html=True)
-            # Lienzo para dibujar
-            canvas_result = st_canvas(
-                fill_color="black",
-                stroke_width=20,          # Trazo grueso vital para MNIST
-                stroke_color="#FFFFFF",   # Blanco sobre...
-                background_color="#000000", # ...Negro (Como el dataset MNIST)
-                height=280,
-                width=280,
-                drawing_mode="freedraw",
-                key="canvas",
-            )
-            
-            # Detectar si se dibujó algo comparando si hay valores > 0 (blanco) en el array
-            if canvas_result.image_data is not None and np.any(canvas_result.image_data):
-                if input_source is None: # Priorizar upload si ambos existen, si no usar canvas
-                    input_source = "canvas"
-                    
-    else:
-        # Solo upload para Fashion MNIST
-        uploaded_file = st.file_uploader("Sube una prenda", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
+    st.subheader("📸 Entrada de Datos")
+    
+    if input_mode == "Subir Archivo":
+        uploaded_file = st.file_uploader("Arrastra imagen", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
         if uploaded_file:
             img_raw = Image.open(uploaded_file)
-            st.image(img_raw, caption=f"📁 {uploaded_file.name}", use_container_width=True)
-            input_source = "upload"
+            st.image(img_raw, caption="Imagen Subida", use_container_width=True)
             
-    if not input_source:
-        st.markdown("""
-        <div style="
-            background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(139,92,246,0.05));
-            border: 1.5px dashed rgba(99,102,241,0.25); border-radius: 16px; padding: 3rem 2rem;
-            text-align: center; margin-top: 0.5rem;">
-            <div style="font-size:2.5rem;margin-bottom:0.75rem;">📥</div>
-            <p style="color:#475569!important;font-family:'Space Mono',monospace;font-size:0.78rem;line-height:1.6;">
-                Proporciona una imagen para comenzar
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+            # Preprocesamiento
+            img_gray = ImageOps.grayscale(img_raw)
+            if np.mean(np.array(img_gray)) > 127:
+                img_gray = ImageOps.invert(img_gray)
+            img_final = img_gray.resize((28, 28))
+            img_tensor = np.array(img_final).astype('float32') / 255.0
+            img_tensor = img_tensor.reshape(1, 28, 28, 1)
+
+    else:
+        st.write("Dibuja aquí abajo:")
+        canvas_result = st_canvas(
+            fill_color="black",
+            stroke_width=18,
+            stroke_color="#FFFFFF",
+            background_color="#000000",
+            height=300,
+            width=300,
+            drawing_mode="freedraw",
+            key="canvas",
+            update_streamlit=True,
+            display_toolbar=True # Permite borrar (ícono de basura)
+        )
+        if canvas_result.image_data is not None:
+            # Convertir el dibujo a formato MNIST
+            raw_draw = canvas_result.image_data.astype('uint8')
+            img_pil = Image.fromarray(raw_draw).convert('L')
+            img_final = img_pil.resize((28, 28))
+            img_tensor = np.array(img_final).astype('float32') / 255.0
+            img_tensor = img_tensor.reshape(1, 28, 28, 1)
 
 with col_result:
-    st.markdown("""
-    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.25rem;">
-        <span style="width:32px;height:32px;background:linear-gradient(135deg,#6366F1,#8B5CF6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">⚡</span>
-        <h3 style="margin:0!important;font-size:1rem!important;color:#E2E8F0!important;font-weight:700!important;">Análisis Dinámico</h3>
-    </div>
-    """, unsafe_allow_html=True)
+    st.subheader("⚡ Análisis Dinámico")
+    
+    if img_tensor is not None:
+        if st.button("EJECUTAR INFERENCIA IA"):
+            model = model_mnist if engine_choice == "Números (MNIST)" else model_fashion
+            
+            if model:
+                preds = model.predict(img_tensor)
+                
+                if engine_choice == "Números (MNIST)":
+                    labels = [str(i) for i in range(10)]
+                else:
+                    labels = ['Camiseta', 'Pantalón', 'Suéter', 'Vestido', 'Abrigo', 
+                              'Sandalia', 'Camisa', 'Zapatilla', 'Bolso', 'Botín']
+                
+                top_idx = np.argmax(preds)
+                confidence = np.max(preds)
 
-    if input_source:
-        if st.button("▶  Analizar Patrones"):
-            if model_mnist and model_fashion:
-                with st.spinner("Procesando entrada visual..."):
-                    
-                    # --- PROCESAMIENTO DEPENDIENDO DE LA FUENTE ---
-                    if input_source == "upload":
-                        img_gray = ImageOps.grayscale(img_raw)
-                        # Inversión inteligente si el fondo es blanco
-                        if np.mean(np.array(img_gray)) > 120:
-                            img_gray = ImageOps.invert(img_gray)
-                        img_final = img_gray.resize((28, 28))
-                        img_tensor = np.array(img_final).astype('float32') / 255.0
-                        img_tensor = img_tensor.reshape(1, 28, 28, 1)
-                        
-                    elif input_source == "canvas":
-                        # El canvas devuelve un array RGBA. Lo convertimos a imagen PIL en escala de grises.
-                        canvas_img = Image.fromarray(canvas_result.image_data.astype('uint8')).convert('L')
-                        img_final = canvas_img.resize((28, 28))
-                        img_tensor = np.array(img_final).astype('float32') / 255.0
-                        img_tensor = img_tensor.reshape(1, 28, 28, 1)
+                # UI de Resultados
+                r1, r2 = st.columns(2)
+                with r1:
+                    st.markdown(f"""<div class='result-card'>
+                        <small>PREDICCIÓN</small><h3>{labels[top_idx]}</h3></div>""", unsafe_allow_html=True)
+                with r2:
+                    st.markdown(f"""<div class='result-card'>
+                        <small>CONFIANZA</small><h3>{confidence:.2%}</h3></div>""", unsafe_allow_html=True)
 
-                    # --- INFERENCIA ---
-                    if engine_choice == "Números (MNIST)":
-                        preds = model_mnist.predict(img_tensor)
-                        labels = [str(i) for i in range(10)]
-                    else:
-                        preds = model_fashion.predict(img_tensor)
-                        labels = ['T-shirt', 'Trouser', 'Pullover', 'Dress', 'Coat', 
-                                  'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
-
-                    top_idx = np.argmax(preds)
-                    confidence = np.max(preds)
-
-                    # --- UI DE RESULTADOS ---
-                    m1, m2 = st.columns(2)
-                    with m1:
-                        st.markdown(f"""
-                        <div style="background:linear-gradient(135deg,#131929,#0F172A);border:1px solid rgba(99,102,241,0.25);border-radius:16px;padding:1.25rem 1.5rem;">
-                            <div style="color:#64748B;font-family:'Space Mono',monospace;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Predicción</div>
-                            <div style="color:#A5B4FC;font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;line-height:1.4;word-break:break-word;">{labels[top_idx]}</div>
-                        </div>""", unsafe_allow_html=True)
-                    with m2:
-                        st.markdown(f"""
-                        <div style="background:linear-gradient(135deg,#131929,#0F172A);border:1px solid rgba(99,102,241,0.25);border-radius:16px;padding:1.25rem 1.5rem;">
-                            <div style="color:#64748B;font-family:'Space Mono',monospace;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">Confianza</div>
-                            <div style="color:#C4B5FD;font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;">{confidence:.2%}</div>
-                        </div>""", unsafe_allow_html=True)
-
-                    st.markdown('<div style="margin-top:1rem;"></div>', unsafe_allow_html=True)
-
-                    df_chart = pd.DataFrame({'Clase': labels, 'Confianza': preds[0]})
-                    df_chart = df_chart.sort_values('Confianza', ascending=True)
-
-                    colors = ['rgba(99,102,241,0.25)'] * len(labels)
-                    colors[df_chart['Clase'].tolist().index(labels[top_idx])] = 'rgba(139,92,246,1)'
-
-                    fig = go.Figure(go.Bar(
-                        x=df_chart['Confianza'],
-                        y=df_chart['Clase'],
-                        orientation='h',
-                        marker=dict(
-                            color=df_chart['Confianza'],
-                            colorscale=[[0, 'rgba(99,102,241,0.15)'], [0.5, 'rgba(99,102,241,0.6)'], [1, 'rgba(139,92,246,1)']],
-                            line=dict(color='rgba(139,92,246,0.3)', width=0.5),
-                        ),
-                        text=[f'{v:.1%}' for v in df_chart['Confianza']],
-                        textposition='outside',
-                        textfont=dict(color='#94A3B8', size=10, family='Space Mono')
-                    ))
-
-                    fig.update_layout(
-                        title=dict(text='Distribución de Probabilidades', font=dict(color='#E2E8F0', size=13, family='Syne'), x=0),
-                        paper_bgcolor='rgba(13,17,32,0)',
-                        plot_bgcolor='rgba(13,17,32,0)',
-                        height=400,
-                        margin=dict(l=0, r=60, t=45, b=0),
-                        xaxis=dict(showgrid=True, gridcolor='rgba(99,102,241,0.08)', tickformat='.0%', tickfont=dict(color='#475569', size=9, family='Space Mono'), zeroline=False),
-                        yaxis=dict(tickfont=dict(color='#94A3B8', size=10, family='Syne'))
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.error("⚠️ No se detectaron los modelos en el repositorio.")
+                # Gráfico
+                df = pd.DataFrame({'Clase': labels, 'Prob': preds[0]})
+                fig = go.Figure(go.Bar(
+                    x=df['Prob'], y=df['Clase'], orientation='h',
+                    marker=dict(color='rgba(99,102,241,0.6)', line=dict(color='#6366F1', width=1))
+                ))
+                fig.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color='white'), height=350, margin=dict(l=0, r=0, t=30, b=0),
+                    xaxis=dict(showgrid=False, range=[0, 1]), yaxis=dict(autorange="reversed")
+                )
+                st.plotly_chart(fig, use_container_width=True)
     else:
-        st.markdown("""
-        <div style="
-            background: rgba(13,17,32,0.6); border: 1px solid rgba(99,102,241,0.15); border-radius: 20px;
-            padding: 3rem 2rem; text-align: center; height: 280px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;">
-            <div style="font-size:2rem;margin-bottom:0.75rem;opacity:0.3;">⚡</div>
-            <p style="color:#334155!important;font-family:'Space Mono',monospace;font-size:0.75rem;line-height:1.8;">
-                Sube o dibuja una imagen<br>para iniciar el análisis
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-# ============================================================
-# 7. FOOTER
-# ============================================================
-st.markdown('<div style="border-top:1px solid rgba(99,102,241,0.1);margin-top:3rem;padding-top:1.5rem;"></div>', unsafe_allow_html=True)
-
-fc1, fc2, fc3 = st.columns(3)
-with fc1: st.markdown('<p style="color:#334155!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;">🔍 VISION LAB PRO © 2025</p>', unsafe_allow_html=True)
-with fc2: st.markdown('<p style="color:#334155!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;text-align:center;">POWERED BY TENSORFLOW</p>', unsafe_allow_html=True)
-with fc3: st.markdown('<p style="color:#334155!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;text-align:right;">STREAMLIT CLOUD</p>', unsafe_allow_html=True)
+        st.info("Esperando entrada (archivo o dibujo)...")
