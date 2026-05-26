@@ -26,7 +26,7 @@ footer { display: none !important; }
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 2. CSS PROFESIONAL — DARK THEME
+# 2. CSS PROFESIONAL — DARK THEME (Mantenemos el fondo oscuro de la app)
 # ============================================================
 st.markdown("""
 <style>
@@ -36,6 +36,7 @@ st.markdown("""
 
 /* SIDEBAR */
 [data-testid="stSidebar"] { background: #0D1120 !important; border-right: 1px solid rgba(99,102,241,0.2) !important; }
+[data-testid="stSidebar"] * { color: #E2E8F0 !important; }
 
 /* RADIO BUTTONS */
 [data-testid="stRadio"] > div[role="radiogroup"] { gap: 0.6rem !important; }
@@ -43,9 +44,11 @@ st.markdown("""
     background: #0D1120 !important; border: 1px solid rgba(99,102,241,0.2) !important;
     border-radius: 10px !important; padding: 0.6rem 1rem !important;
 }
+[data-testid="stRadio"] label[data-baseweb="radio"]:hover { border-color: rgba(99,102,241,0.6) !important; }
 [data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
     border-color: #6366F1 !important; background: rgba(99,102,241,0.1) !important;
 }
+[data-testid="stRadio"] label[data-baseweb="radio"] p { color: #E2E8F0 !important; }
 
 /* BOTÓN */
 div.stButton > button {
@@ -59,6 +62,11 @@ div.stButton > button {
     background: linear-gradient(135deg, #131929, #0F172A);
     border: 1px solid rgba(99,102,241,0.25); border-radius: 16px; padding: 1.25rem;
 }
+.result-card small { color: #94A3B8; font-family: 'Space Mono', monospace; }
+.result-card h3 { margin: 0; color: white; }
+
+/* Títulos principales */
+h1, h2, h3, h4, p, span { color: #E2E8F0; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -68,11 +76,12 @@ div.stButton > button {
 @st.cache_resource
 def load_vision_engines():
     try:
+        # Reemplazar con tus rutas reales si son diferentes
         m1 = tf.keras.models.load_model("mnist_cnn_model.keras")
         m2 = tf.keras.models.load_model("fashion_mnist_cnn_model.keras")
         return m1, m2
     except Exception as e:
-        st.sidebar.error(f"⚠️ Error: {e}")
+        st.sidebar.error(f"⚠️ Error cargando modelos: {e}")
         return None, None
 
 model_mnist, model_fashion = load_vision_engines()
@@ -91,14 +100,22 @@ with st.sidebar:
     )
     
     st.write("MÉTODO DE ENTRADA:")
+    # Definir opciones disponibles
+    if engine_choice == "Números (MNIST)":
+        mode_options = ["Subir Archivo", "Pizarra Natural (Negro sobre Blanco)"]
+    else:
+        mode_options = ["Subir Archivo"]
+        
     input_mode = st.radio(
         "Fuente de imagen:",
-        options=["Subir Archivo", "Pizarra (Solo MNIST)"] if engine_choice == "Números (MNIST)" else ["Subir Archivo"]
+        options=mode_options,
+        index=0
     )
-    st.info("💡 La Pizarra es ideal para probar trazos manuales rápidos.")
+    st.markdown("---")
+    st.info("💡 **Inversión Automática:** Dibujas en negro sobre blanco, pero la IA recibe blanco sobre negro internamente para máxima precisión.")
 
 # ============================================================
-# 5. CUERPO PRINCIPAL
+# 5. ENCABEZADO PRINCIPAL
 # ============================================================
 st.title("🔮 Laboratorio de Clasificación Inteligente")
 st.markdown(f"Motor activo: **{engine_choice}**")
@@ -106,7 +123,8 @@ st.markdown("---")
 
 col_input, col_result = st.columns([1, 1.2], gap="large")
 
-img_tensor = None
+# Tensor que alimentará al modelo
+final_img_tensor = None
 
 with col_input:
     st.subheader("📸 Entrada de Datos")
@@ -117,46 +135,62 @@ with col_input:
             img_raw = Image.open(uploaded_file)
             st.image(img_raw, caption="Imagen Subida", use_container_width=True)
             
-            # Preprocesamiento
+            # Preprocesamiento inteligente para subidas (invierte si el fondo es claro)
             img_gray = ImageOps.grayscale(img_raw)
-            if np.mean(np.array(img_gray)) > 127:
-                img_gray = ImageOps.invert(img_gray)
+            if np.mean(np.array(img_gray)) > 127: # Si el fondo es mayormente blanco
+                img_gray = ImageOps.invert(img_gray) # Invierte a número blanco/fondo negro
             img_final = img_gray.resize((28, 28))
-            img_tensor = np.array(img_final).astype('float32') / 255.0
-            img_tensor = img_tensor.reshape(1, 28, 28, 1)
+            
+            # Normalización
+            final_img_tensor = np.array(img_final).astype('float32') / 255.0
+            final_img_tensor = final_img_tensor.reshape(1, 28, 28, 1)
 
-    else:
-        st.write("Dibuja aquí abajo:")
+    elif input_mode == "Pizarra Natural (Negro sobre Blanco)":
+        st.write("Dibuja tu número en **NEGRO** sobre el fondo **BLANCO**:")
         canvas_result = st_canvas(
-            fill_color="black",
-            stroke_width=18,
-            stroke_color="#FFFFFF",
-            background_color="#000000",
+            fill_color="white",       # Color de relleno de formas (no usado aquí)
+            stroke_width=20,          # Grosor del trazo (ideal para MNIST)
+            stroke_color="#000000",   # Trazo NEGRO
+            background_color="#FFFFFF", # Fondo BLANCO
             height=300,
             width=300,
             drawing_mode="freedraw",
-            key="canvas",
+            key="canvas_natural",
             update_streamlit=True,
-            display_toolbar=True # Permite borrar (ícono de basura)
+            display_toolbar=True      # Barra de herramientas para borrar (basura)
         )
-        if canvas_result.image_data is not None:
-            # Convertir el dibujo a formato MNIST
+        
+        # Si hay dibujo, preprocesamos e INVERTIMOS
+        if canvas_result.image_data is not None and np.any(canvas_result.image_data[:,:,:3] < 255):
+            # 1. Obtener datos RGBA y convertir a Grayscale (L)
             raw_draw = canvas_result.image_data.astype('uint8')
-            img_pil = Image.fromarray(raw_draw).convert('L')
-            img_final = img_pil.resize((28, 28))
-            img_tensor = np.array(img_final).astype('float32') / 255.0
-            img_tensor = img_tensor.reshape(1, 28, 28, 1)
+            img_pil = Image.fromarray(raw_draw).convert('L') # Ahora es negro sobre blanco
+            
+            # 2. INVERSIÓN CRUCIAL: Convertir a blanco sobre negro para la IA
+            img_inverted = ImageOps.invert(img_pil)
+            
+            # 3. Redimensionar a 28x28
+            img_final = img_inverted.resize((28, 28))
+            
+            # 4. Normalización
+            final_img_tensor = np.array(img_final).astype('float32') / 255.0
+            final_img_tensor = final_img_tensor.reshape(1, 28, 28, 1)
+            
+            # (Opcional) Descomenta esto para ver qué recibe la IA realmente en la barra lateral
+            # st.sidebar.image(img_final, caption="Input Real a la IA", width=50)
 
 with col_result:
     st.subheader("⚡ Análisis Dinámico")
     
-    if img_tensor is not None:
+    if final_img_tensor is not None:
         if st.button("EJECUTAR INFERENCIA IA"):
+            # Seleccionar modelo
             model = model_mnist if engine_choice == "Números (MNIST)" else model_fashion
             
             if model:
-                preds = model.predict(img_tensor)
+                preds = model.predict(final_img_tensor)
                 
+                # Definir etiquetas
                 if engine_choice == "Números (MNIST)":
                     labels = [str(i) for i in range(10)]
                 else:
@@ -166,7 +200,7 @@ with col_result:
                 top_idx = np.argmax(preds)
                 confidence = np.max(preds)
 
-                # UI de Resultados
+                # UI de Resultados Elegante
                 r1, r2 = st.columns(2)
                 with r1:
                     st.markdown(f"""<div class='result-card'>
@@ -175,17 +209,39 @@ with col_result:
                     st.markdown(f"""<div class='result-card'>
                         <small>CONFIANZA</small><h3>{confidence:.2%}</h3></div>""", unsafe_allow_html=True)
 
-                # Gráfico
+                st.markdown("---")
+                
+                # Gráfico de Probabilidades Plotly
                 df = pd.DataFrame({'Clase': labels, 'Prob': preds[0]})
+                df = df.sort_values('Prob', ascending=True) # Ordenar para el gráfico horizontal
+                
                 fig = go.Figure(go.Bar(
-                    x=df['Prob'], y=df['Clase'], orientation='h',
-                    marker=dict(color='rgba(99,102,241,0.6)', line=dict(color='#6366F1', width=1))
+                    x=df['Prob'], 
+                    y=df['Clase'], 
+                    orientation='h',
+                    marker=dict(
+                        color='rgba(99,102,241,0.7)', # Color Indigo sutil
+                        line=dict(color='#6366F1', width=1.5)
+                    ),
+                    hovertemplate='<b>%{y}</b><br>Probabilidad: %{x:.2%}<extra></extra>'
                 ))
+                
                 fig.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                    font=dict(color='white'), height=350, margin=dict(l=0, r=0, t=30, b=0),
-                    xaxis=dict(showgrid=False, range=[0, 1]), yaxis=dict(autorange="reversed")
+                    title=dict(text='Distribución de Probabilidades', font=dict(color='white', size=14)),
+                    paper_bgcolor='rgba(0,0,0,0)', 
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color='#CBD5E1', size=11),
+                    height=380, 
+                    margin=dict(l=0, r=10, t=40, b=0),
+                    xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)', range=[0, 1], tickformat='.0%'),
+                    yaxis=dict(showgrid=False)
                 )
                 st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Esperando entrada (archivo o dibujo)...")
+        st.info("Esperando entrada validada (archivo subido o dibujo detectado)...")
+        st.markdown("""
+        <div style="background: rgba(99,102,241,0.05); border: 1px dashed rgba(99,102,241,0.2); border-radius: 12px; padding: 2rem; text-align: center; color: #94A3B8;">
+            <p style="font-size: 2rem; margin-bottom: 0.5rem;">📥</p>
+            Proporciona una imagen en el panel izquierdo para iniciar el análisis de IA.
+        </div>
+        """, unsafe_allow_html=True)
