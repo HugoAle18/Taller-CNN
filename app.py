@@ -114,7 +114,7 @@ with st.sidebar:
     
     st.write("MÉTODO DE ENTRADA:")
     if engine_choice == "Números (MNIST)":
-        mode_options = ["Subir Archivo", "Pizarra Natural (Negro sobre Blanco)"]
+        mode_options = ["Subir Archivo", "Pizarra"]
     else:
         mode_options = ["Subir Archivo"]
         
