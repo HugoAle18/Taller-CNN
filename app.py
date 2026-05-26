@@ -16,12 +16,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Ocultar toolbar superior de Streamlit
+# Ocultar elementos de Streamlit pero MANTENER el header para no perder el botón del sidebar
 st.markdown("""
 <style>
-header[data-testid="stHeader"] { display: none !important; }
 #MainMenu { display: none !important; }
 footer { display: none !important; }
+/* Ocultar solo la parte derecha del header (deploy, perfil, etc) pero dejar el botón del menú */
+.stApp header > div.st-emotion-cache-11rsoem { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -62,21 +63,6 @@ st.markdown("""
 }
 [data-testid="stSidebar"] hr {
     border-color: rgba(99,102,241,0.25) !important;
-}
-
-/* ── OCULTAR TOOLTIP NATIVO STREAMLIT ─────────────────── */
-[data-testid="stToolbar"],
-[data-testid="stDecoration"],
-[data-testid="stStatusWidget"],
-div[class*="toolbar"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-}
-/* Eliminar cualquier tooltip flotante */
-div[data-baseweb="tooltip"],
-div[role="tooltip"] {
-    display: none !important;
 }
 
 /* ── RADIO BUTTONS CORREGIDOS ─────────────────────────── */
@@ -156,16 +142,6 @@ p, span, label, div {
     font-family: 'Syne', sans-serif !important;
 }
 
-/* ── WRITE / CAPTION ──────────────────────────────────── */
-[data-testid="stText"], .stMarkdown p {
-    color: #94A3B8 !important;
-}
-.stCaption {
-    color: #64748B !important;
-    font-family: 'Space Mono', monospace !important;
-    font-size: 0.72rem !important;
-}
-
 /* ── FILE UPLOADER ────────────────────────────────────── */
 [data-testid="stFileUploader"] {
     background: #0D1120 !important;
@@ -176,16 +152,6 @@ p, span, label, div {
 }
 [data-testid="stFileUploader"]:hover {
     border-color: rgba(99,102,241,0.8) !important;
-}
-[data-testid="stFileUploader"] label,
-[data-testid="stFileUploader"] p,
-[data-testid="stFileUploader"] span {
-    color: #94A3B8 !important;
-    font-family: 'Space Mono', monospace !important;
-    font-size: 0.8rem !important;
-}
-[data-testid="stFileUploaderDropzoneInstructions"] span {
-    color: #A5B4FC !important;
 }
 
 /* ── BOTÓN PRINCIPAL ──────────────────────────────────── */
@@ -203,41 +169,10 @@ div.stButton > button {
     transition: all 0.3s ease !important;
     width: 100% !important;
     margin-top: 0.5rem !important;
-    box-shadow: 0 4px 24px rgba(99,102,241,0.35) !important;
 }
 div.stButton > button:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 8px 32px rgba(99,102,241,0.55) !important;
-    background: linear-gradient(135deg, #7C3AED 0%, #6366F1 100%) !important;
-}
-div.stButton > button:active {
-    transform: translateY(0px) !important;
-}
-
-/* ── MÉTRICAS ─────────────────────────────────────────── */
-[data-testid="stMetric"] {
-    background: linear-gradient(135deg, #131929, #0F172A) !important;
-    border: 1px solid rgba(99,102,241,0.25) !important;
-    border-radius: 16px !important;
-    padding: 1.25rem 1.5rem !important;
-    backdrop-filter: blur(10px) !important;
-}
-[data-testid="stMetric"] label {
-    color: #64748B !important;
-    font-family: 'Space Mono', monospace !important;
-    font-size: 0.72rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.1em !important;
-}
-[data-testid="stMetricValue"] {
-    color: #F8FAFC !important;
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 800 !important;
-    font-size: 2rem !important;
-    background: linear-gradient(135deg, #A5B4FC, #C4B5FD) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
 }
 
 /* ── IMAGEN SUBIDA ────────────────────────────────────── */
@@ -250,35 +185,11 @@ div.stButton > button:active {
 [data-testid="stImage"] img {
     border-radius: 16px !important;
 }
-[data-testid="stImage"] + p {
-    color: #64748B !important;
-    font-family: 'Space Mono', monospace !important;
-    font-size: 0.72rem !important;
-    text-align: center !important;
-}
-
-/* ── ERROR / WARNING ──────────────────────────────────── */
-[data-testid="stAlert"][data-baseweb="notification"] {
-    background: rgba(239,68,68,0.1) !important;
-    border: 1px solid rgba(239,68,68,0.3) !important;
-    border-radius: 12px !important;
-    color: #FCA5A5 !important;
-}
-[data-testid="stAlert"][data-baseweb="notification"] p {
-    color: #FCA5A5 !important;
-}
-
-/* ── DIVISOR ──────────────────────────────────────────── */
-hr {
-    border-color: rgba(99,102,241,0.15) !important;
-    margin: 2rem 0 !important;
-}
 
 /* ── SCROLLBAR CUSTOM ─────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #080B14; }
 ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.7); }
 
 /* ── PLOTLY CHART CONTAINER ───────────────────────────── */
 [data-testid="stPlotlyChart"] {
@@ -286,38 +197,12 @@ hr {
     border: 1px solid rgba(99,102,241,0.2) !important;
     border-radius: 20px !important;
     padding: 1rem !important;
-    overflow: hidden !important;
 }
 
 /* ── COLUMNAS GAP ─────────────────────────────────────── */
 [data-testid="stHorizontalBlock"] {
     gap: 2rem !important;
     align-items: flex-start !important;
-}
-
-/* ── SECTION LABEL ────────────────────────────────────── */
-.section-label {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 1.25rem;
-}
-.section-label span.icon {
-    width: 32px;
-    height: 32px;
-    background: linear-gradient(135deg, #6366F1, #8B5CF6);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-}
-.section-label h3 {
-    margin: 0 !important;
-    font-size: 1rem !important;
-    color: #E2E8F0 !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.02em !important;
 }
 
 /* ── STATUS BADGE ─────────────────────────────────────── */
@@ -416,9 +301,6 @@ with st.sidebar:
 
     st.info("💡 **Tip:** El sistema invierte automáticamente los colores si detecta un fondo blanco para máxima precisión.")
 
-    st.markdown('<div style="border-top:1px solid rgba(99,102,241,0.2);margin-top:auto;padding-top:1rem;"></div>', unsafe_allow_html=True)
-    st.markdown('<p style="color:#334155!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;">TensorFlow · Streamlit Cloud</p>', unsafe_allow_html=True)
-
 # ============================================================
 # 5. ENCABEZADO PRINCIPAL
 # ============================================================
@@ -436,9 +318,9 @@ col_input, col_result = st.columns([1, 1.3], gap="large")
 
 with col_input:
     st.markdown("""
-    <div class="section-label">
-        <span class="icon">📸</span>
-        <h3>Captura de Datos</h3>
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.25rem;">
+        <span style="width:32px;height:32px;background:linear-gradient(135deg,#6366F1,#8B5CF6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">📸</span>
+        <h3 style="margin:0!important;font-size:1rem!important;color:#E2E8F0!important;font-weight:700!important;">Captura de Datos</h3>
     </div>
     """, unsafe_allow_html=True)
 
@@ -471,9 +353,9 @@ with col_input:
 
 with col_result:
     st.markdown("""
-    <div class="section-label">
-        <span class="icon">⚡</span>
-        <h3>Análisis Dinámico</h3>
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:1.25rem;">
+        <span style="width:32px;height:32px;background:linear-gradient(135deg,#6366F1,#8B5CF6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;">⚡</span>
+        <h3 style="margin:0!important;font-size:1rem!important;color:#E2E8F0!important;font-weight:700!important;">Análisis Dinámico</h3>
     </div>
     """, unsafe_allow_html=True)
 
@@ -481,9 +363,7 @@ with col_result:
         if st.button("▶  Analizar Patrones"):
             if model_mnist and model_fashion:
                 with st.spinner("Procesando imagen..."):
-                    # --- PROCESAMIENTO ---
                     img_gray = ImageOps.grayscale(img_raw)
-
                     if np.mean(np.array(img_gray)) > 120:
                         img_gray = ImageOps.invert(img_gray)
 
@@ -491,7 +371,6 @@ with col_result:
                     img_tensor = np.array(img_final).astype('float32') / 255.0
                     img_tensor = img_tensor.reshape(1, 28, 28, 1)
 
-                    # --- INFERENCIA ---
                     if engine_choice == "Números (MNIST)":
                         preds = model_mnist.predict(img_tensor)
                         labels = [str(i) for i in range(10)]
@@ -502,7 +381,6 @@ with col_result:
                                   'Shirt (Camisa)', 'Sneaker (Zapatilla)', 'Bag (Bolso)',
                                   'Ankle boot (Botín)']
 
-                    # --- RESULTADOS ---
                     top_idx = np.argmax(preds)
                     confidence = np.max(preds)
 
@@ -522,7 +400,6 @@ with col_result:
 
                     st.markdown('<div style="margin-top:1rem;"></div>', unsafe_allow_html=True)
 
-                    # --- GRÁFICO PLOTLY (DARK ELEGANTE) ---
                     df_chart = pd.DataFrame({'Clase': labels, 'Confianza': preds[0]})
                     df_chart = df_chart.sort_values('Confianza', ascending=True)
 
@@ -540,40 +417,19 @@ with col_result:
                         ),
                         text=[f'{v:.1%}' for v in df_chart['Confianza']],
                         textposition='outside',
-                        textfont=dict(color='#94A3B8', size=10, family='Space Mono'),
-                        hovertemplate='<b>%{y}</b><br>Confianza: %{x:.2%}<extra></extra>',
+                        textfont=dict(color='#94A3B8', size=10, family='Space Mono')
                     ))
 
                     fig.update_layout(
-                        title=dict(
-                            text='Distribución de Probabilidades',
-                            font=dict(color='#E2E8F0', size=13, family='Syne'),
-                            x=0,
-                        ),
+                        title=dict(text='Distribución de Probabilidades', font=dict(color='#E2E8F0', size=13, family='Syne'), x=0),
                         paper_bgcolor='rgba(13,17,32,0)',
                         plot_bgcolor='rgba(13,17,32,0)',
                         height=400,
                         margin=dict(l=0, r=60, t=45, b=0),
-                        xaxis=dict(
-                            showgrid=True,
-                            gridcolor='rgba(99,102,241,0.08)',
-                            tickformat='.0%',
-                            tickfont=dict(color='#475569', size=9, family='Space Mono'),
-                            zeroline=False,
-                        ),
-                        yaxis=dict(
-                            tickfont=dict(color='#94A3B8', size=10, family='Syne'),
-                            gridcolor='rgba(99,102,241,0.05)',
-                        ),
-                        hoverlabel=dict(
-                            bgcolor='#0D1120',
-                            bordercolor='rgba(99,102,241,0.4)',
-                            font=dict(color='#E2E8F0', family='Syne'),
-                        ),
+                        xaxis=dict(showgrid=True, gridcolor='rgba(99,102,241,0.08)', tickformat='.0%', tickfont=dict(color='#475569', size=9, family='Space Mono'), zeroline=False),
+                        yaxis=dict(tickfont=dict(color='#94A3B8', size=10, family='Syne'))
                     )
-
                     st.plotly_chart(fig, use_container_width=True)
-
             else:
                 st.error("⚠️ No se detectaron los modelos en el repositorio.")
     else:
@@ -596,16 +452,3 @@ with col_result:
             </p>
         </div>
         """, unsafe_allow_html=True)
-
-# ============================================================
-# 7. FOOTER
-# ============================================================
-st.markdown('<div style="border-top:1px solid rgba(99,102,241,0.1);margin-top:3rem;padding-top:1.5rem;"></div>', unsafe_allow_html=True)
-
-fc1, fc2, fc3 = st.columns(3)
-with fc1:
-    st.markdown('<p style="color:#334155!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;">🔍 VISION LAB PRO © 2025</p>', unsafe_allow_html=True)
-with fc2:
-    st.markdown('<p style="color:#334155!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;text-align:center;">POWERED BY TENSORFLOW</p>', unsafe_allow_html=True)
-with fc3:
-    st.markdown('<p style="color:#334155!important;font-family:\'Space Mono\',monospace;font-size:0.65rem;text-align:right;">STREAMLIT CLOUD</p>', unsafe_allow_html=True)
