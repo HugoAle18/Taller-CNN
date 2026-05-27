@@ -13,11 +13,11 @@ st.set_page_config(
     page_title="Vision Lab Pro 2.0",
     page_icon="🔮",
     layout="wide",
-    initial_sidebar_state="expanded" # Fuerza a que inicie abierta
+    initial_sidebar_state="expanded" # Forza a que inicie abierta
 )
 
 # ============================================================
-# 2. CSS PROFESIONAL — LIGHT THEME & SIDEBAR FIJO
+# 2. CSS PROFESIONAL — LIGHT THEME & SIDEBAR SEGURO
 # ============================================================
 st.markdown("""
 <style>
@@ -26,23 +26,16 @@ st.markdown("""
 /* Fondo general de la app */
 .stApp { background: #F8FAFC !important; font-family: 'Syne', sans-serif !important; }
 
-/* --------------------------------------------------------
-   BLOQUEAR Y FIJAR LA BARRA LATERAL
-   -------------------------------------------------------- */
-/* Ocultar el botón de colapsar ("x" o flecha) de la barra lateral */
-[data-testid="stSidebarCollapseButton"] { display: none !important; }
-
-/* Ocultar elementos innecesarios de Streamlit (Menú y Footer) */
+/* Ocultar SOLO el Menú de opciones de Streamlit y el Footer, MANTENEMOS EL HEADER para no perder el botón */
 #MainMenu { display: none !important; }
 footer { display: none !important; }
-.stApp header { display: none !important; } /* Oculta el header por completo para evitar que la app se mueva */
 
 /* Diseño del Sidebar */
 [data-testid="stSidebar"] { 
     background: #FFFFFF !important; 
     border-right: 1px solid #E2E8F0 !important; 
-    min-width: 320px !important; /* Ancho fijo mínimo */
-    max-width: 320px !important; /* Ancho fijo máximo */
+    min-width: 320px !important;
+    max-width: 320px !important;
 }
 [data-testid="stSidebar"] * { color: #334155 !important; }
 
@@ -107,7 +100,7 @@ def load_vision_engines():
 model_mnist, model_fashion = load_vision_engines()
 
 # ============================================================
-# 4. SIDEBAR (AHORA FIJO Y SIN BOTÓN DE CERRAR)
+# 4. SIDEBAR
 # ============================================================
 with st.sidebar:
     st.markdown("### 🔮 Vision Lab Pro")
