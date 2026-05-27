@@ -13,20 +13,11 @@ st.set_page_config(
     page_title="Vision Lab Pro 2.0",
     page_icon="🔮",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded" # Fuerza a que inicie abierta
 )
 
-# Ocultar elementos innecesarios pero MANTENER el botón de sidebar
-st.markdown("""
-<style>
-#MainMenu { display: none !important; }
-footer { display: none !important; }
-.stApp header > div:last-child { display: none !important; }
-</style>
-""", unsafe_allow_html=True)
-
 # ============================================================
-# 2. CSS PROFESIONAL — LIGHT THEME
+# 2. CSS PROFESIONAL — LIGHT THEME & SIDEBAR FIJO
 # ============================================================
 st.markdown("""
 <style>
@@ -35,8 +26,24 @@ st.markdown("""
 /* Fondo general de la app */
 .stApp { background: #F8FAFC !important; font-family: 'Syne', sans-serif !important; }
 
-/* SIDEBAR */
-[data-testid="stSidebar"] { background: #FFFFFF !important; border-right: 1px solid #E2E8F0 !important; }
+/* --------------------------------------------------------
+   BLOQUEAR Y FIJAR LA BARRA LATERAL
+   -------------------------------------------------------- */
+/* Ocultar el botón de colapsar ("x" o flecha) de la barra lateral */
+[data-testid="stSidebarCollapseButton"] { display: none !important; }
+
+/* Ocultar elementos innecesarios de Streamlit (Menú y Footer) */
+#MainMenu { display: none !important; }
+footer { display: none !important; }
+.stApp header { display: none !important; } /* Oculta el header por completo para evitar que la app se mueva */
+
+/* Diseño del Sidebar */
+[data-testid="stSidebar"] { 
+    background: #FFFFFF !important; 
+    border-right: 1px solid #E2E8F0 !important; 
+    min-width: 320px !important; /* Ancho fijo mínimo */
+    max-width: 320px !important; /* Ancho fijo máximo */
+}
 [data-testid="stSidebar"] * { color: #334155 !important; }
 
 /* RADIO BUTTONS */
@@ -67,7 +74,7 @@ div.stButton > button:hover {
 h1, h2, h3 { color: #0F172A !important; }
 p, span, label { color: #475569 !important; }
 
-/* PANEL DE RESULTADOS (Light Mode) */
+/* PANEL DE RESULTADOS */
 .result-card {
     background: #FFFFFF;
     border: 1px solid #E2E8F0; 
@@ -100,7 +107,7 @@ def load_vision_engines():
 model_mnist, model_fashion = load_vision_engines()
 
 # ============================================================
-# 4. SIDEBAR
+# 4. SIDEBAR (AHORA FIJO Y SIN BOTÓN DE CERRAR)
 # ============================================================
 with st.sidebar:
     st.markdown("### 🔮 Vision Lab Pro")
@@ -113,11 +120,9 @@ with st.sidebar:
     )
     
     st.write("MÉTODO DE ENTRADA:")
-    # Menú dinámico dependiendo del motor elegido
     if engine_choice == "Números (MNIST)":
         mode_options = ["Subir Archivo", "Pizarra Natural (Negro sobre Blanco)"]
     else:
-        # Aquí agregamos la cámara para la ropa
         mode_options = ["Subir Archivo", "Cámara en Vivo"]
         
     input_mode = st.radio(
@@ -183,12 +188,11 @@ with col_input:
             final_img_tensor = final_img_tensor.reshape(1, 28, 28, 1)
 
     elif input_mode == "Cámara en Vivo":
-        st.markdown("<p style='font-size:0.85rem; color:#64748B;'>📸 <b>Tip:</b> Para mejores resultados, intenta que la prenda resalte sobre un fondo liso (como una pared blanca o una mesa).</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size:0.85rem; color:#64748B;'>📸 <b>Tip:</b> Para mejores resultados, intenta que la prenda resalte sobre un fondo liso.</p>", unsafe_allow_html=True)
         
         camera_file = st.camera_input("Toma una foto de la prenda", label_visibility="collapsed")
         
         if camera_file:
-            # Procesamos la imagen de la cámara igual que si la hubiéramos subido
             img_raw = Image.open(camera_file)
             
             img_gray = ImageOps.grayscale(img_raw)
