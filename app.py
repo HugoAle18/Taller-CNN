@@ -113,10 +113,12 @@ with st.sidebar:
     )
     
     st.write("MÉTODO DE ENTRADA:")
+    # Menú dinámico dependiendo del motor elegido
     if engine_choice == "Números (MNIST)":
         mode_options = ["Subir Archivo", "Pizarra Natural (Negro sobre Blanco)"]
     else:
-        mode_options = ["Subir Archivo"]
+        # Aquí agregamos la cámara para la ropa
+        mode_options = ["Subir Archivo", "Cámara en Vivo"]
         
     input_mode = st.radio(
         "Fuente de imagen:",
@@ -156,7 +158,6 @@ with col_input:
 
     elif input_mode == "Pizarra Natural (Negro sobre Blanco)":
         st.write("Dibuja tu número en **NEGRO** sobre el fondo **BLANCO**:")
-        # Borde para la pizarra en modo claro
         st.markdown('<div style="border: 2px solid #E2E8F0; border-radius: 4px; display: inline-block;">', unsafe_allow_html=True)
         canvas_result = st_canvas(
             fill_color="white",
@@ -177,6 +178,23 @@ with col_input:
             img_pil = Image.fromarray(raw_draw).convert('L')
             img_inverted = ImageOps.invert(img_pil)
             img_final = img_inverted.resize((28, 28))
+            
+            final_img_tensor = np.array(img_final).astype('float32') / 255.0
+            final_img_tensor = final_img_tensor.reshape(1, 28, 28, 1)
+
+    elif input_mode == "Cámara en Vivo":
+        st.markdown("<p style='font-size:0.85rem; color:#64748B;'>📸 <b>Tip:</b> Para mejores resultados, intenta que la prenda resalte sobre un fondo liso (como una pared blanca o una mesa).</p>", unsafe_allow_html=True)
+        
+        camera_file = st.camera_input("Toma una foto de la prenda", label_visibility="collapsed")
+        
+        if camera_file:
+            # Procesamos la imagen de la cámara igual que si la hubiéramos subido
+            img_raw = Image.open(camera_file)
+            
+            img_gray = ImageOps.grayscale(img_raw)
+            if np.mean(np.array(img_gray)) > 127: 
+                img_gray = ImageOps.invert(img_gray)
+            img_final = img_gray.resize((28, 28))
             
             final_img_tensor = np.array(img_final).astype('float32') / 255.0
             final_img_tensor = final_img_tensor.reshape(1, 28, 28, 1)
@@ -210,7 +228,6 @@ with col_result:
 
                 st.markdown("---")
                 
-                # Gráfico ajustado a Light Theme
                 df = pd.DataFrame({'Clase': labels, 'Prob': preds[0]})
                 df = df.sort_values('Prob', ascending=True)
                 
@@ -237,7 +254,7 @@ with col_result:
                 )
                 st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Esperando entrada validada (archivo subido o dibujo detectado)...")
+        st.info("Esperando entrada validada (archivo subido, dibujo detectado o foto capturada)...")
         st.markdown("""
         <div style="background: #F1F5F9; border: 1px dashed #CBD5E1; border-radius: 12px; padding: 2rem; text-align: center; color: #64748B;">
             <p style="font-size: 2.5rem; margin-bottom: 0.5rem;">📥</p>
